@@ -1,0 +1,30 @@
+{
+  "$schema": "http://json-schema.org/draft-04/schema#",
+  "title": "Funcionario",
+  "description": "Um funcionario da empresa",
+  "type": "object",
+  "properties": {
+    "matricula": {
+      "description": "Identificador unico do funcionario",
+      "type": "string"
+    },
+    "nome": {
+      "description": "Nome do funcionario",
+      "type": "string"
+    },
+    "area": {
+      "type": "string"
+    },
+    "cargo": {
+      "type": "string"
+    },
+    "salario_bruto": {
+      "type": "number",
+      "minimum" : 0
+    },
+    "data_de_admissao": {
+      "type": "string"
+    }
+  },
+  "required": ["matricula", "nome", "area","cargo","data_de_admissao","salario_bruto"]
+}

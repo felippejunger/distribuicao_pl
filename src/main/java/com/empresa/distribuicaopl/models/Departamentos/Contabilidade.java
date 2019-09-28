@@ -2,7 +2,7 @@ package com.empresa.distribuicaopl.models.Departamentos;
 
 public class Contabilidade extends Departamento{
 
-    Contabilidade(){
+    public Contabilidade(){
         this.nome = "Contabilidade";
     }
 }

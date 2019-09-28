@@ -2,7 +2,7 @@ package com.empresa.distribuicaopl.models.Departamentos;
 
 public class Financeiro extends Departamento {
 
-    Financeiro(){
+    public Financeiro(){
         this.nome = "Financeiro";
     }
 }

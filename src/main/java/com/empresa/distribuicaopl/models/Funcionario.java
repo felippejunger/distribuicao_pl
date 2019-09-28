@@ -4,11 +4,13 @@ import com.empresa.distribuicaopl.models.Departamentos.Departamento;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.redis.core.RedisHash;
 
+import javax.swing.text.DateFormatter;
 import java.io.Serializable;
 import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
 
 @RedisHash("Funcionario")
-public abstract class Funcionario extends Pessoa implements Serializable {
+public class Funcionario extends Pessoa implements Serializable {
 
     @Id
     private String matricula;
@@ -16,7 +18,7 @@ public abstract class Funcionario extends Pessoa implements Serializable {
     private String cargo;
     private LocalDate dataAdmissao;
     private double valorParticipacao;
-    private Departamento departamento;
+    public Departamento departamento;
 
     public String getMatricula() {
         return matricula;
@@ -66,5 +68,10 @@ public abstract class Funcionario extends Pessoa implements Serializable {
         this.departamento = departamento;
     }
 
-
+    @Override
+    public String toString() {
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd/MM/yyyy");
+        return "[ Matricula: "+getMatricula()+"; Nome: "+getNome()+"; Area: "+getDepartamento().getNome()+
+                "; cargo: "+getCargo()+"; salario bruto: "+getSalario_bruto()+"; Admissao: "+getDataAdmissao().format(formatter);
+    }
 }

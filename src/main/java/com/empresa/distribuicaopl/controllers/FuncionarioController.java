@@ -22,11 +22,11 @@ public class FuncionarioController {
         try{
             System.out.println("Processando request para criacao de usuario...");
 
-            String response = funcionarioService.processaCriacao(body);
+            funcionarioService.process(body);
 
             System.out.println("Processando com sucesso.");
 
-            return new ResponseEntity<String>(response, HttpStatus.CREATED);
+            return new ResponseEntity<String>("", HttpStatus.ACCEPTED);
         }
         catch (ValidationException e){
             System.out.println(e.getCausingExceptions()+" - "+e.getViolatedSchema());

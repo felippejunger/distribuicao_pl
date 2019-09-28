@@ -1,7 +1,7 @@
 package com.empresa.distribuicaopl.models.Departamentos;
 
 public class Tecnologia extends Departamento {
-    Tecnologia(){
+    public Tecnologia(){
         this.nome = "Tecnologia";
     }
 }

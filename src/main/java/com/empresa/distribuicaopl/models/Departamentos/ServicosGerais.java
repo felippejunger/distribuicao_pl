@@ -2,7 +2,7 @@ package com.empresa.distribuicaopl.models.Departamentos;
 
 public class ServicosGerais extends Departamento {
 
-    ServicosGerais(){
+    public ServicosGerais(){
         this.nome = "ServicosGerais";
     }
 }

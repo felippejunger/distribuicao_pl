@@ -1,7 +1,7 @@
 package com.empresa.distribuicaopl.models.Departamentos;
 
 public class Diretoria extends Departamento{
-    Diretoria(){
+    public Diretoria(){
         this.nome = "Diretoria";
     }
 }

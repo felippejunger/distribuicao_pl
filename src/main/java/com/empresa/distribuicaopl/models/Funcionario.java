@@ -1,6 +1,7 @@
 package com.empresa.distribuicaopl.models;
 
 import com.empresa.distribuicaopl.models.Departamentos.Departamento;
+import com.empresa.distribuicaopl.utils.StringUtils;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.redis.core.RedisHash;
 
@@ -17,8 +18,17 @@ public class Funcionario extends Pessoa implements Serializable {
     private double salario_bruto;
     private String cargo;
     private LocalDate dataAdmissao;
-    private double valorParticipacao;
-    public Departamento departamento;
+    private Participacao participacao;
+    private Departamento departamento;
+
+
+    public Participacao getParticipacao() {
+        return participacao;
+    }
+
+    public void setParticipacao(Participacao participacao) {
+        this.participacao = participacao;
+    }
 
     public String getMatricula() {
         return matricula;
@@ -52,13 +62,6 @@ public class Funcionario extends Pessoa implements Serializable {
         this.dataAdmissao = dataAdmissao;
     }
 
-    public double getValorParticipacao() {
-        return valorParticipacao;
-    }
-
-    public void setValorParticipacao(double valorParticipacao) {
-        this.valorParticipacao = valorParticipacao;
-    }
 
     public Departamento getDepartamento() {
         return departamento;
@@ -66,6 +69,10 @@ public class Funcionario extends Pessoa implements Serializable {
 
     public void setDepartamento(Departamento departamento) {
         this.departamento = departamento;
+    }
+
+    public boolean eEstagiario(){
+        return StringUtils.removerAcentos(this.getCargo().toLowerCase()).equals("estagiario");
     }
 
     @Override

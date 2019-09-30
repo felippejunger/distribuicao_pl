@@ -27,7 +27,7 @@ public class Participacao {
 
         double participacao = ( ( fator1 + fator2 ) / pesoFaixaSalarial.getValor() ) * 12;
 
-        return participacao;
+        return DoubleUtils.buscaValorFomatado(participacao,2);
     }
 
     public Peso calculaPesoTempoAdmissao(LocalDate dataAdmissao, LocalDate hoje){
@@ -39,15 +39,15 @@ public class Participacao {
         int tempoDeAdmissao = periodo.getYears();
 
         /** PESO_1 Até 1 ano de casa **/
-        if(tempoDeAdmissao <= 1){
+        if(tempoDeAdmissao < 1){
             pesoPorTempo = Peso.PESO_1;
 
         /** PESO_2 Mais de um ano e menos de 3 **/
-        }else if(tempoDeAdmissao > 1 && tempoDeAdmissao <= 3){
+        }else if(tempoDeAdmissao >= 1 && tempoDeAdmissao < 3){
             pesoPorTempo = Peso.PESO_2;
 
         /** PESO_3 Acima de 3 anos e menos de 8 anos**/
-        }else if(tempoDeAdmissao > 3 && tempoDeAdmissao <= 8){
+        }else if(tempoDeAdmissao >= 3 && tempoDeAdmissao < 8){
             pesoPorTempo = Peso.PESO_3;
 
         /** PESO_5 Mais 8 anos de casa **/

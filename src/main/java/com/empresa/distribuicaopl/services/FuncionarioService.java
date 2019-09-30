@@ -19,8 +19,6 @@ import org.springframework.cache.annotation.Cacheable;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.HttpClientErrorException;
-import org.springframework.web.client.HttpServerErrorException;
-
 import javax.annotation.PostConstruct;
 import javax.annotation.PreDestroy;
 import java.io.InputStream;
@@ -86,11 +84,7 @@ public class FuncionarioService {
         JSONArray arrayFuncionarios = new JSONArray(body);
         arrayFuncionarios.forEach( (item) ->{
 
-            System.out.println(item);
             JSONObject j = new JSONObject(item.toString());
-
-            System.out.println(j);
-
             Funcionario funcionario = new Funcionario();
             funcionario.setCargo(j.getString("cargo"));
             funcionario.setMatricula(j.getString("matricula"));

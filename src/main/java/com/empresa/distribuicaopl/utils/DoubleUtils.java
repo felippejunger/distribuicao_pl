@@ -6,7 +6,7 @@ import java.math.RoundingMode;
 public class DoubleUtils {
 
     public static double buscaValorFomatado(double valor, int casaDecimais){
-        BigDecimal bd = new BigDecimal(valor).setScale(casaDecimais, RoundingMode.HALF_UP);
+        BigDecimal bd = new BigDecimal(valor).setScale(casaDecimais, RoundingMode.DOWN);
         return bd.doubleValue();
 
     }

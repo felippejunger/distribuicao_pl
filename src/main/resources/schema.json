@@ -2,37 +2,44 @@
   "$schema": "http://json-schema.org/draft-04/schema#",
   "title": "Funcionario",
   "description": "Um funcionario da empresa",
-  "dados": {"type": "array", "minitems": 1, "maxitems": 100,
-    "items": {
-      "allOf": [
-        {
-          "properties":
-          {
-            "matricula": {
-              "description": "Identificador unico do funcionario",
-              "type": "string"
-            },
-            "nome": {
-              "description": "Nome do funcionario",
-              "type": "string"
-            },
-            "area": {
-              "type": "string"
-            },
-            "cargo": {
-              "type": "string"
-            },
-            "salario_bruto": {
-              "type": "number",
-              "minimum" : 0
-            },
-            "data_de_admissao": {
-              "type": "string"
-            }
-          },
-          "required": ["matricula", "nome", "area","cargo","data_de_admissao","salario_bruto"]
+  "type": "object",
+  "properties": {
+    "dados": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "$ref": "#/definitions/funcionarios"
+      }
+    }
+  },
+  "definitions": {
+    "funcionarios": {
+      "type": "object",
+      "required": [ "matricula", "nome", "area", "cargo", "salario_bruto", "data_de_admissao" ],
+      "properties": {
+        "matricula": {
+          "type": "string",
+          "description": "Matricula do funcionario."
+        },
+        "nome": {
+          "type": "string"
+        },
+        "area": {
+          "type": "string"
+        },
+        "cargo": {
+          "type": "string"
+        },
+        "salario_bruto": {
+          "type": "number",
+          "minimum": 0.01,
+          "maximum": 9999999.0
+        },
+        "data_de_admissao": {
+          "type": "string"
         }
-      ]
+      }
     }
   }
+
 }

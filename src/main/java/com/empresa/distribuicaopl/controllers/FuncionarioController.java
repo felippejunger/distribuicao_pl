@@ -45,8 +45,8 @@ public class FuncionarioController {
 
         }
         catch (ValidationException e){
-            System.out.println(e.getCausingExceptions()+" - "+e.getViolatedSchema());
-            return new ResponseEntity<String>("", HttpStatus.BAD_REQUEST);
+            System.out.println("Problema ao validar o json de criacao de funcionarios: "+e.getMessage());
+            return new ResponseEntity<String>(e.getMessage(), HttpStatus.BAD_REQUEST);
         }
         catch (Exception e){
             System.out.println("Problema ao processar a requisicao. Motivo: "+e.getMessage());

@@ -1,11 +1,10 @@
 package com.empresa.distribuicaopl.models;
-
 import com.empresa.distribuicaopl.models.Departamentos.Departamento;
 import com.empresa.distribuicaopl.utils.StringUtils;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.redis.core.RedisHash;
-
-import javax.swing.text.DateFormatter;
+import org.springframework.http.HttpStatus;
+import org.springframework.web.client.HttpClientErrorException;
 import java.io.Serializable;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
@@ -35,6 +34,8 @@ public class Funcionario extends Pessoa implements Serializable {
     }
 
     public void setMatricula(String matricula) {
+
+        validaCampoVazio(matricula);
         this.matricula = matricula;
     }
 
@@ -50,7 +51,14 @@ public class Funcionario extends Pessoa implements Serializable {
         return cargo;
     }
 
+    private void validaCampoVazio(String campo){
+        if(campo.trim().equals("")){
+            throw new HttpClientErrorException(HttpStatus.BAD_REQUEST,"Campo nao pode ser vazio!");
+        }
+    }
+
     public void setCargo(String cargo) {
+        validaCampoVazio(cargo);
         this.cargo = cargo;
     }
 

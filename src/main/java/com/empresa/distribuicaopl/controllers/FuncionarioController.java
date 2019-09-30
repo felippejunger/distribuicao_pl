@@ -1,6 +1,8 @@
 package com.empresa.distribuicaopl.controllers;
 
+import com.empresa.distribuicaopl.models.Funcionario;
 import com.empresa.distribuicaopl.services.FuncionarioService;
+import com.empresa.distribuicaopl.utils.Utils;
 import org.everit.json.schema.ValidationException;
 import org.json.JSONArray;
 import org.json.JSONObject;
@@ -14,6 +16,8 @@ import org.springframework.messaging.handler.annotation.Header;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.client.HttpClientErrorException;
 import sun.misc.Cache;
+
+import java.util.List;
 
 @CrossOrigin
 @RestController
@@ -29,41 +33,28 @@ public class FuncionarioController {
     ResponseEntity<String> cria(@RequestBody String body) {
         try{
             System.out.println("Processando request para criacao de usuario...");
-            //TODO jsonschema
+
             JSONObject obj = new JSONObject();
             obj.put("dados", new JSONArray(body));
 
             if(funcionarioService.validaSchemaCriacaoFuncionario(obj)){
 
-                funcionarioService.process(body);
+                funcionarioService.processaCriacao(body);
                 System.out.println("Processando com sucesso.");
-                return new ResponseEntity<String>("", HttpStatus.ACCEPTED);
+                return new ResponseEntity<String>(Utils.buscaMsgRetorno("Request aceito!"), HttpStatus.ACCEPTED);
             }
             else{
-                return new ResponseEntity<String>("", HttpStatus.BAD_REQUEST);
+                return new ResponseEntity<String>("Problema com o request passado!", HttpStatus.BAD_REQUEST);
             }
-
         }
         catch (ValidationException e){
             System.out.println("Problema ao validar o json de criacao de funcionarios: "+e.getMessage());
-            return new ResponseEntity<String>(e.getMessage(), HttpStatus.BAD_REQUEST);
+            return new ResponseEntity<String>(Utils.buscaMsgRetorno(e.getMessage()), HttpStatus.BAD_REQUEST);
         }
         catch (Exception e){
             System.out.println("Problema ao processar a requisicao. Motivo: "+e.getMessage());
-            return new ResponseEntity<String>("", HttpStatus.INTERNAL_SERVER_ERROR);
+            return new ResponseEntity<String>(Utils.buscaMsgRetorno("Problema ao processar a requisicao!"), HttpStatus.INTERNAL_SERVER_ERROR);
         }
-    }
-
-    @RequestMapping(method = RequestMethod.PUT, produces = "application/json", consumes = "application/json")
-    public @ResponseBody
-    ResponseEntity<String> atualiza(@PathVariable String matricula){
-        return new ResponseEntity<String>("", HttpStatus.OK);
-    }
-
-    @RequestMapping(method = RequestMethod.GET, produces = "application/json", consumes = "application/json")
-    public @ResponseBody
-    ResponseEntity<String> busca(@PathVariable String matricula){
-        return new ResponseEntity<String>("", HttpStatus.OK);
     }
 
     @CacheEvict(value = "myCache", allEntries = true)
@@ -73,13 +64,13 @@ public class FuncionarioController {
 
         try{
             System.out.println("Processando request para apagar todos os funcionarios...");
-            funcionarioService.processDelete();
+            funcionarioService.processaDelete();
             System.out.println("Processo finalizado.");
-            return new ResponseEntity<String>("", HttpStatus.OK);
+            return new ResponseEntity<String>(Utils.buscaMsgRetorno("Processado com sucesso!"), HttpStatus.OK);
         }
         catch (Exception e){
             System.out.println("Problema ao processar a requisicao. Motivo: "+e.getMessage());
-            return new ResponseEntity<String>("", HttpStatus.INTERNAL_SERVER_ERROR);
+            return new ResponseEntity<String>(Utils.buscaMsgRetorno("Problema ao processar a requisicao!"), HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
 
@@ -89,18 +80,29 @@ public class FuncionarioController {
 
         try{
 
+
             System.out.println("Processando requisicao para calcular a participacao dos funcionarios...");
-            String resposta = funcionarioService.CalcParticipacaoFuncionarios(body);
-            System.out.println("Processado");
-            return new ResponseEntity<String>(resposta, HttpStatus.ACCEPTED);
+
+            JSONObject bodyJson = new JSONObject(body);
+
+            if(funcionarioService.validaValorADistribuir(bodyJson)){
+
+                List<Funcionario> funcionarios = funcionarioService.buscaTodosOsFuncionarios();
+                String resposta = funcionarioService.calcParticipacaoFuncionarios(bodyJson.getDouble("valor_distribuicao"), funcionarios);
+
+                System.out.println("Processado com sucesso!");
+
+                return new ResponseEntity<String>(resposta, HttpStatus.ACCEPTED);
+            }
+            return new ResponseEntity<String>("Problema com request passado!", HttpStatus.BAD_REQUEST);
         }
         catch (HttpClientErrorException e){
             System.out.println("Problema ao processar a requisicao. Motivo: "+e.getMessage());
-            return new ResponseEntity<String>(e.getMessage(), e.getStatusCode());
+            return new ResponseEntity<String>(Utils.buscaMsgRetorno(e.getMessage()), e.getStatusCode());
         }
         catch (Exception e){
             System.out.println("Problema ao processar a requisicao. Motivo: "+e.getMessage());
-            return new ResponseEntity<String>("", HttpStatus.INTERNAL_SERVER_ERROR);
+            return new ResponseEntity<String>(Utils.buscaMsgRetorno("Problema ao processar a requisicao!"), HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
 }

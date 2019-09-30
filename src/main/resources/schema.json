@@ -19,15 +19,19 @@
       "properties": {
         "matricula": {
           "type": "string",
+          "minLength": 1,
           "description": "Matricula do funcionario."
         },
         "nome": {
+          "minLength": 1,
           "type": "string"
         },
         "area": {
+          "minLength": 1,
           "type": "string"
         },
         "cargo": {
+          "minLength": 1,
           "type": "string"
         },
         "salario_bruto": {
@@ -36,7 +40,9 @@
           "maximum": 9999999.0
         },
         "data_de_admissao": {
-          "type": "string"
+          "minLength": 1,
+          "type": "string",
+          "pattern": "^\\d{4}\\-(0[1-9]|1[012])\\-(0[1-9]|[12][0-9]|3[01])$"
         }
       }
     }

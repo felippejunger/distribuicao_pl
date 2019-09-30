@@ -1,6 +1,10 @@
 package com.empresa.distribuicaopl.models.Departamentos;
 
-public class RelacionamentoCliente extends Departamento{
+import java.io.Serializable;
+
+public class RelacionamentoCliente extends Departamento implements Serializable {
+
+    private static final long serialVersionUID = 1L;
 
     public RelacionamentoCliente(){
         this.nome = "RelacionamentoCliente";

@@ -23,10 +23,10 @@ import javax.annotation.PostConstruct;
 import javax.annotation.PreDestroy;
 import java.io.InputStream;
 import java.time.LocalDate;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.time.format.DateTimeFormatter;
+import java.time.format.DateTimeFormatterBuilder;
+import java.time.format.ResolverStyle;
+import java.util.*;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
@@ -40,12 +40,12 @@ public class FuncionarioService {
         executorService = Executors.newSingleThreadExecutor();
     }
 
-    public void process(String body) {
+    public void processaCriacao(String body) {
         // no result operation
-        executorService.submit(() -> processaCriacao(body));
+        executorService.submit(() -> criaFuncionarios(body));
     }
 
-    public void processDelete(){
+    public void processaDelete(){
         executorService.submit(() -> apagaFuncionarios());
     }
 
@@ -70,7 +70,7 @@ public class FuncionarioService {
     @Autowired
     FuncionarioRepository funcionarioRepository;
 
-    public void processaCriacao(String body){
+    public void criaFuncionarios(String body){
 
         List<Funcionario> funcionarios = this.PopulaListaFuncionariosFromJSON(body);
 
@@ -82,6 +82,7 @@ public class FuncionarioService {
     private List<Funcionario> PopulaListaFuncionariosFromJSON(String body){
         List<Funcionario> funcionarios = new ArrayList<>();
         JSONArray arrayFuncionarios = new JSONArray(body);
+
         arrayFuncionarios.forEach( (item) ->{
 
             JSONObject j = new JSONObject(item.toString());
@@ -118,18 +119,13 @@ public class FuncionarioService {
         System.out.println("Funcionarios apagados.");
     }
 
-    public String CalcParticipacaoFuncionarios(String body){
-        JSONObject bodyJson = new JSONObject(body);
-        String resposta = "";
-        if(this.validaValorADistribuir(bodyJson)){
-            double valorADistribuir = bodyJson.getDouble("valor_distribuicao");
-            resposta = this.processaCalculoParticipacao(valorADistribuir);
-        }
+    public String calcParticipacaoFuncionarios(double valorADistribuir, List<Funcionario> funcionarios){
 
-        return resposta;
+        return this.processaCalculoParticipacao(valorADistribuir, funcionarios);
+
     }
 
-    private boolean validaValorADistribuir(JSONObject body){
+    public boolean validaValorADistribuir(JSONObject body){
         if(body.has("valor_distribuicao")){
 
             double valorADistribuir = body.getDouble("valor_distribuicao");
@@ -145,12 +141,9 @@ public class FuncionarioService {
         }
     }
 
-    private String processaCalculoParticipacao(double valorMaxADistribuir){
+    private String processaCalculoParticipacao(double valorMaxADistribuir, List<Funcionario> funcionarios){
 
         double accValorADistribuir = 0.0;
-        System.out.println("antes");
-        List<Funcionario> funcionarios = this.buscaTodosOsFuncionarios();
-        System.out.println("depois");
 
         if(funcionarios.size() == 0){
             throw new HttpClientErrorException(HttpStatus.NOT_FOUND,"Nenhum funcionario cadastrado!");

@@ -1,6 +1,8 @@
 package com.empresa.distribuicaopl.models;
 
-public abstract class Pessoa {
+import java.io.Serializable;
+
+public abstract class Pessoa implements Serializable {
     public String getNome() {
         return nome;
     }

@@ -8,6 +8,8 @@ import com.empresa.distribuicaopl.models.Peso;
 import com.empresa.distribuicaopl.models.Salario;
 import com.empresa.distribuicaopl.repositories.FuncionarioRepository;
 import com.empresa.distribuicaopl.utils.DoubleUtils;
+import com.empresa.distribuicaopl.utils.StringUtils;
+import com.empresa.distribuicaopl.utils.Utils;
 import org.everit.json.schema.Schema;
 import org.everit.json.schema.loader.SchemaLoader;
 import org.json.JSONArray;
@@ -16,6 +18,7 @@ import org.json.JSONTokener;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.Cacheable;
+import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.HttpClientErrorException;
@@ -35,6 +38,8 @@ public class FuncionarioService {
 
     private ExecutorService executorService;
 
+    private final String FLAG_PROCESSANDO = "processando";
+
     @PostConstruct
     private void create() {
         executorService = Executors.newSingleThreadExecutor();
@@ -49,22 +54,12 @@ public class FuncionarioService {
         executorService.submit(() -> apagaFuncionarios());
     }
 
+    @Autowired
+    private StringRedisTemplate redisTemplate;
 
     @PreDestroy
     private void destroy() {
         executorService.shutdown();
-    }
-
-    public static Map<String, String> mapFuncionarios;
-    static {
-        mapFuncionarios = new HashMap<>();
-        mapFuncionarios.put("diretoria", Diretoria.class.getName());
-        mapFuncionarios.put("contabilidade", Contabilidade.class.getName());
-        mapFuncionarios.put("financeiro", Financeiro.class.getName());
-        mapFuncionarios.put("relacionamento com o cliente", RelacionamentoCliente.class.getName());
-        mapFuncionarios.put("serviços gerais", ServicosGerais.class.getName());
-        mapFuncionarios.put("tecnologia", Tecnologia.class.getName());
-
     }
 
     @Autowired
@@ -74,7 +69,11 @@ public class FuncionarioService {
 
         List<Funcionario> funcionarios = this.PopulaListaFuncionariosFromJSON(body);
 
+        redisTemplate.opsForValue().set(this.FLAG_PROCESSANDO,"true");
+
         funcionarioRepository.saveAll(funcionarios);
+
+        redisTemplate.opsForValue().getOperations().delete(this.FLAG_PROCESSANDO);
 
         System.out.println("Registros salvos com sucesso!");
     }
@@ -92,8 +91,9 @@ public class FuncionarioService {
             funcionario.setSalario_bruto(j.getDouble("salario_bruto"));
             funcionario.setNome(j.getString("nome"));
             funcionario.setDataAdmissao(LocalDate.parse(j.getString("data_de_admissao")));
+            String departamento = StringUtils.removerAcentos(j.getString("area").toLowerCase());
+            funcionario.setDepartamento(Utils.buscaDepartamentoInstance(departamento));
 
-            funcionario.setDepartamento( new RelacionamentoCliente() );
 
             funcionarios.add(funcionario);
         });
@@ -119,11 +119,11 @@ public class FuncionarioService {
         System.out.println("Funcionarios apagados.");
     }
 
-    public String calcParticipacaoFuncionarios(double valorADistribuir, List<Funcionario> funcionarios){
-
-        return this.processaCalculoParticipacao(valorADistribuir, funcionarios);
-
-    }
+//    public String calcParticipacaoFuncionarios(double valorADistribuir, List<Funcionario> funcionarios){
+//
+//        return this.processaCalculoParticipacao(valorADistribuir, funcionarios);
+//
+//    }
 
     public boolean validaValorADistribuir(JSONObject body){
         if(body.has("valor_distribuicao")){
@@ -141,20 +141,31 @@ public class FuncionarioService {
         }
     }
 
-    private String processaCalculoParticipacao(double valorMaxADistribuir, List<Funcionario> funcionarios){
+    public String processaCalculoParticipacao(double valorMaxADistribuir, List<Funcionario> funcionarios){
 
         double accValorADistribuir = 0.0;
 
+        if(temProcessamentoPendente() ){
+            throw new HttpClientErrorException(HttpStatus.NOT_FOUND,"Funcionarios ainda nao cadastrados. Tente novamente em instantes...");
+        }
+
         if(funcionarios.size() == 0){
-            throw new HttpClientErrorException(HttpStatus.NOT_FOUND,"Nenhum funcionario cadastrado!");
+            throw new HttpClientErrorException(HttpStatus.NOT_FOUND,"Funcionarios nao cadastrados!");
         }
 
         for (Funcionario funcionario : funcionarios) {
+
             Participacao participacao = new Participacao();
+            /**CALCULA PESO - TEMPO ADMISSAO**/
             Peso pesoTempoAdmissao = participacao.calculaPesoTempoAdmissao(funcionario.getDataAdmissao(),LocalDate.now());
+
+            /**CALCULA PESO - AREA ATUACAO**/
             Peso pesoAreaAtuacao = participacao.calculaPesoPorArea(funcionario.getDepartamento());
+
+            /**CALCULA PESO - FAIXA SALARIAL**/
             Peso pesoFaixaSalarial = funcionario.eEstagiario() ? participacao.buscaPesoEstagiario() :
                     participacao.calculaPesoFaixaSalarial(funcionario.getSalario_bruto(), Salario.SALARIO_MINIMO);
+
 
             double participacaoFuncionario = participacao.calculaParticipacao(funcionario.getSalario_bruto(),
                                                                 pesoTempoAdmissao,pesoAreaAtuacao,pesoFaixaSalarial);
@@ -167,7 +178,7 @@ public class FuncionarioService {
         }
 
         if(accValorADistribuir <= valorMaxADistribuir){
-            return this.buscaRetornoParticipacao(funcionarios,accValorADistribuir,valorMaxADistribuir).toString();
+            return this.buscaRetornoParticipacao(funcionarios, accValorADistribuir, valorMaxADistribuir).toString();
         }
         else {
             throw new HttpClientErrorException(HttpStatus.BAD_REQUEST,"Valor maximo a distribuir inferior ao necessario!");
@@ -175,10 +186,14 @@ public class FuncionarioService {
     }
 
 
-    @Cacheable(value = "myCache")
-    public List<Funcionario> buscaTodosOsFuncionarios(){
+    @Cacheable(value = "myCache", condition = "!#temPendente", unless="#result.size() == 0")
+    public List<Funcionario> buscaTodosOsFuncionarios(boolean temPendente){
 
         return (List<Funcionario>) funcionarioRepository.findAll();
+    }
+
+    public boolean temProcessamentoPendente(){
+        return redisTemplate.hasKey(this.FLAG_PROCESSANDO);
     }
 
     private JSONObject buscaRetornoParticipacao(List<Funcionario> funcionarios, double accValorADistribuir, double valorMaxADistribuir){

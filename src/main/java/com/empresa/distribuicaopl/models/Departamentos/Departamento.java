@@ -1,6 +1,8 @@
 package com.empresa.distribuicaopl.models.Departamentos;
 
-public abstract class Departamento {
+import java.io.Serializable;
+
+public abstract class Departamento implements Serializable {
     public String getNome() {
         return nome;
     }

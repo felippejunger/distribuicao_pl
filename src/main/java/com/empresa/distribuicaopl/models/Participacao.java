@@ -2,9 +2,6 @@ package com.empresa.distribuicaopl.models;
 
 import com.empresa.distribuicaopl.models.Departamentos.*;
 import com.empresa.distribuicaopl.utils.DoubleUtils;
-
-import java.math.BigDecimal;
-import java.math.RoundingMode;
 import java.time.LocalDate;
 import java.time.Period;
 
@@ -20,6 +17,15 @@ public class Participacao {
         this.valorParticipacao = valorParticipacao;
     }
 
+
+    /**
+     * Metodo responsavel por calcular a participacao final do funcionario
+     * @param salarioBruto
+     * @param pesoTempoAdmissao
+     * @param pesoAreaAtuacao
+     * @param pesoFaixaSalarial
+     * @return double
+     */
     public double calculaParticipacao(double salarioBruto, Peso pesoTempoAdmissao, Peso pesoAreaAtuacao, Peso pesoFaixaSalarial){
 
         double fator1 = ( salarioBruto * pesoTempoAdmissao.getValor() );
@@ -30,6 +36,13 @@ public class Participacao {
         return DoubleUtils.buscaValorFomatado(participacao,2);
     }
 
+
+    /**
+     * Metodo responsavel por calcular o peso de acordo com a data de admissao
+     * @param dataAdmissao
+     * @param hoje
+     * @return
+     */
     public Peso calculaPesoTempoAdmissao(LocalDate dataAdmissao, LocalDate hoje){
 
         Peso pesoPorTempo;
@@ -58,6 +71,11 @@ public class Participacao {
         return pesoPorTempo;
     }
 
+    /**
+     * Metodo responsavel por calcular o peso de acordo com a area passada
+     * @param areaDeAtuacao
+     * @return
+     */
     public Peso calculaPesoPorArea(Departamento areaDeAtuacao){
 
         Peso pesoPorArea;
@@ -83,6 +101,12 @@ public class Participacao {
         return pesoPorArea;
     }
 
+    /**
+     * Metodo responsavel por calcular o peso de acordo com a faixa salarial
+     * @param salarioFuncionario
+     * @param salarioMinimo
+     * @return
+     */
     public Peso calculaPesoFaixaSalarial(double salarioFuncionario, double salarioMinimo){
 
         Peso pesoFaixaSalarial;
@@ -111,6 +135,10 @@ public class Participacao {
         return pesoFaixaSalarial;
     }
 
+    /**
+     * Retorna o peso do funcionario quando este e um estagiario
+     * @return
+     */
     public Peso buscaPesoEstagiario(){
         return Peso.PESO_1;
     }

@@ -1,4 +1,4 @@
-package com.empresa.distribuicaopl.services;
+package com.empresa.distribuicaopl;
 
 import org.springframework.core.env.Environment;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -8,27 +8,38 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.PropertySource;
 import org.springframework.data.redis.cache.RedisCacheConfiguration;
 import org.springframework.data.redis.cache.RedisCacheManager;
-import org.springframework.data.redis.connection.RedisConnectionFactory;
 import org.springframework.data.redis.connection.RedisPassword;
 import org.springframework.data.redis.connection.RedisStandaloneConfiguration;
+import org.springframework.data.redis.connection.jedis.JedisClientConfiguration;
 import org.springframework.data.redis.connection.jedis.JedisConnectionFactory;
 import org.springframework.data.redis.core.RedisTemplate;
+import redis.clients.jedis.JedisPoolConfig;
 
 import java.time.Duration;
 
 @Configuration
 @EnableCaching
 @PropertySource("classpath:application.properties")
-public class Store {
+public class BancoConfig {
 
     @Autowired
     private Environment env;
 
     @Bean
     JedisConnectionFactory jedisConnectionFactory() {
-        RedisStandaloneConfiguration redisStandaloneConfiguration = new RedisStandaloneConfiguration(env.getProperty("spring.redis.host"), Integer.parseInt(env.getProperty("spring.redis.port")));
+
+        JedisPoolConfig poolConfig = new JedisPoolConfig();
+        poolConfig.setMaxTotal(20);
+        poolConfig.setMinIdle(20 / 10);
+        poolConfig.setMaxIdle(20 / 4);
+        JedisClientConfiguration clientConfig = JedisClientConfiguration.builder().usePooling().poolConfig(poolConfig).build();
+
+        RedisStandaloneConfiguration redisStandaloneConfiguration = new RedisStandaloneConfiguration(
+                env.getProperty("spring.redis.host"),
+                Integer.parseInt(env.getProperty("spring.redis.port")));
+
         redisStandaloneConfiguration.setPassword(RedisPassword.of(env.getProperty("spring.redis.password")));
-        return new JedisConnectionFactory(redisStandaloneConfiguration);
+        return new JedisConnectionFactory(redisStandaloneConfiguration,clientConfig);
     }
 
 

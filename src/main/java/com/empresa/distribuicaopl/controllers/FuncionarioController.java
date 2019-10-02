@@ -7,15 +7,12 @@ import org.everit.json.schema.ValidationException;
 import org.json.JSONArray;
 import org.json.JSONObject;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.autoconfigure.kafka.KafkaProperties;
 import org.springframework.cache.annotation.CacheEvict;
-import org.springframework.cache.annotation.Cacheable;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.messaging.handler.annotation.Header;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.client.HttpClientErrorException;
-import sun.misc.Cache;
+
 
 import java.util.List;
 
@@ -37,11 +34,12 @@ public class FuncionarioController {
             JSONObject obj = new JSONObject();
             obj.put("dados", new JSONArray(body));
 
+            //Validacao basica de schema do json recebido
             if(funcionarioService.validaSchemaCriacaoFuncionario(obj)){
 
                 funcionarioService.processaCriacao(body);
                 System.out.println("Processando com sucesso.");
-                return new ResponseEntity<String>(Utils.buscaMsgRetorno("Request aceito!"), HttpStatus.ACCEPTED);
+                return new ResponseEntity<String>(Utils.buscaRetornoComHATEOAS("Request aceito! Os funcionarios estarao disponiveis em instantes."), HttpStatus.ACCEPTED);
             }
             else{
                 return new ResponseEntity<String>("Problema com o request passado!", HttpStatus.BAD_REQUEST);
@@ -58,7 +56,7 @@ public class FuncionarioController {
     }
 
     @CacheEvict(value = "myCache", allEntries = true)
-    @RequestMapping(method = RequestMethod.DELETE, produces = "application/json", consumes = "application/json")
+    @RequestMapping(method = RequestMethod.DELETE, produces = "application/json")
     public @ResponseBody
     ResponseEntity<String> apaga(){
 
@@ -76,10 +74,9 @@ public class FuncionarioController {
 
     @RequestMapping(path = "/participacao", method = RequestMethod.POST, produces = "application/json", consumes = "application/json")
     public @ResponseBody
-    ResponseEntity<String> calParticipacao(@RequestBody String body){
+    ResponseEntity<String> calcParticipacao(@RequestBody String body){
 
         try{
-
 
             System.out.println("Processando requisicao para calcular a participacao dos funcionarios...");
 
@@ -87,12 +84,12 @@ public class FuncionarioController {
 
             if(funcionarioService.validaValorADistribuir(bodyJson)){
 
-                List<Funcionario> funcionarios = funcionarioService.buscaTodosOsFuncionarios();
-                String resposta = funcionarioService.calcParticipacaoFuncionarios(bodyJson.getDouble("valor_distribuicao"), funcionarios);
+                List<Funcionario> funcionarios = funcionarioService.buscaTodosOsFuncionarios(funcionarioService.temProcessamentoPendente());
+                String resposta = funcionarioService.processaCalculoParticipacao(bodyJson.getDouble("valor_distribuicao"), funcionarios);
 
                 System.out.println("Processado com sucesso!");
 
-                return new ResponseEntity<String>(resposta, HttpStatus.ACCEPTED);
+                return new ResponseEntity<String>(resposta, HttpStatus.OK);
             }
             return new ResponseEntity<String>("Problema com request passado!", HttpStatus.BAD_REQUEST);
         }
